@@ -2,6 +2,8 @@ package com.yan.security.monitorSystem.models;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.time.LocalDateTime;
 
@@ -20,6 +22,7 @@ public class DeviceLog {
 
     @ManyToOne
     @JoinColumn(name = "device_id")
+    @OnDelete(action = OnDeleteAction.CASCADE)
     private Device device;
 
 
