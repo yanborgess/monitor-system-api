@@ -109,4 +109,8 @@ public class DeviceService {
                 .toList();
     }
 
+    public List<DeviceLog> findAllLogs() {
+        return logRepository.findAllByOrderByTimestampDesc();
+    }
+
 }

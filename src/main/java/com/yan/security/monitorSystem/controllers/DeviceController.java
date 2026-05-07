@@ -3,6 +3,7 @@ package com.yan.security.monitorSystem.controllers;
 import com.yan.security.monitorSystem.controllers.dtos.DeviceRequestDTO;
 import com.yan.security.monitorSystem.controllers.dtos.DeviceResponseDTO;
 import com.yan.security.monitorSystem.controllers.dtos.DeviceStatusRequestDTO;
+import com.yan.security.monitorSystem.models.DeviceLog;
 import com.yan.security.monitorSystem.services.DeviceService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -20,7 +21,8 @@ import java.util.List;
         RequestMethod.POST,
         RequestMethod.PUT,
         RequestMethod.DELETE,
-        RequestMethod.OPTIONS
+        RequestMethod.OPTIONS,
+        RequestMethod.PATCH
 })
 
 @RestController
@@ -76,4 +78,10 @@ public class DeviceController {
     public List<DeviceResponseDTO> getOffline() {
         return service.listOfflineDevices();
     }
+
+    @GetMapping("/logs")
+    public List<DeviceLog> getLogs() {
+        return service.findAllLogs();
+    }
+
 }

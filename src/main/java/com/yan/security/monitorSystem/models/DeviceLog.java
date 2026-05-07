@@ -1,5 +1,6 @@
 package com.yan.security.monitorSystem.models;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.OnDelete;
@@ -23,6 +24,7 @@ public class DeviceLog {
     @ManyToOne
     @JoinColumn(name = "device_id")
     @OnDelete(action = OnDeleteAction.CASCADE)
+    @JsonIgnoreProperties("logs")
     private Device device;
 
 
