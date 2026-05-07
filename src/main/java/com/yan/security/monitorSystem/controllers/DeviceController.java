@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+
+@CrossOrigin(origins = "http://localhost:5173")
 @RestController
 @RequestMapping("/api/devices")
 @Tag(name = "Dispositivos", description = "Gerenciamento de sensores e câmeras de segurança")
@@ -62,7 +64,7 @@ public class DeviceController {
     }
 
     @Operation(summary = "Filtra apenas dispositivos offline ")
-    @GetMapping("/offline") // URL: localhost:8080/api/devices/offline
+    @GetMapping("/offline")
     public List<DeviceResponseDTO> getOffline() {
         return service.listOfflineDevices();
     }
