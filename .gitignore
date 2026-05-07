@@ -19,6 +19,7 @@ target/
 *.iml
 *.ipr
 out/
+*.class
 
 ### NetBeans ###
 /nbproject/private/
@@ -46,3 +47,13 @@ buildNumber.properties
 
 ### Log Files ###
 *.log
+
+# React / Node
+node_modules/
+dist/
+.env
+
+# React / Node
+monitor-system-ui/node_modules/
+monitor-system-ui/dist/
+monitor-system-ui/.env
