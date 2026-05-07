@@ -1,4 +1,4 @@
 package com.yan.security.monitorSystem.controllers.dtos;
 
-public class AuthenticationDTO {
+public record AuthenticationDTO(String login, String password) {
 }

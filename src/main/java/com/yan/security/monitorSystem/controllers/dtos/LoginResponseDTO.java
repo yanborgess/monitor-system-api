@@ -1,4 +1,4 @@
 package com.yan.security.monitorSystem.controllers.dtos;
 
-public class LoginResponseDTO {
+public record LoginResponseDTO(String token) {
 }
