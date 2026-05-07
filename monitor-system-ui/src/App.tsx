@@ -1,44 +1,144 @@
-import { useEffect, useState } from 'react'
-import type { Device } from './types/device'
+import { useEffect, useState } from 'react';
+import type { Device } from './types/device';
+import { Login } from './components/login';
+import './App.css';
+import { DeviceForm } from './components/DeviceForm';
 
 function App() {
-  // Criamos um estado para guardar a lista de dispositivos
-  // O <Device[]> diz ao TS que isso é uma lista (array) de dispositivos
-  const [devices, setDevices] = useState<Device[]>([])
+  // --- ESTADOS ---
+  const [devices, setDevices] = useState<Device[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [role, setRole] = useState(''); // 'admin' ou 'user'
 
-  // Função para buscar os dados no Java
-  const carregarDados = async () => {
+  // --- FUNÇÃO PARA BUSCAR DISPOSITIVOS (GET) ---
+  const fetchDevices = async () => {
     try {
-      const resposta = await fetch("http://localhost:8080/api/devices")
-      const dados = await resposta.json()
-      setDevices(dados) // Guarda os dados na "memória" (state)
-    } catch (erro) {
-      console.error("Erro ao conectar com o Backend Java:", erro)
+      const response = await fetch("http://localhost:8080/api/devices");
+      if (!response.ok) throw new Error("Erro ao ligar à API");
+      const data = await response.json();
+      setDevices(data);
+      setLoading(false);
+    } catch (error) {
+      console.error("Erro no Java:", error);
+      setLoading(false);
+    }
+  };
+
+  // --- FUNÇÃO PARA EXCLUIR (DELETE) - APENAS ADMIN ---
+  const handleDelete = async (id: number) => {
+  // Confirmar antes de fazer asneira
+  const confirmed = window.confirm("⚠️ ATENÇÃO: Esta ação irá apagar o dispositivo e TODOS os seus logs de segurança. Deseja continuar?");
+  
+  if (confirmed) {
+    try {
+      // Opcional: podes colocar um estado de 'deleting' aqui para mostrar um spinner
+      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
+        method: 'DELETE',
+      });
+
+      if (response.ok) {
+        // Atualização optimista: remove da lista imediatamente
+        setDevices(prev => prev.filter(device => device.id !== id));
+        // Usar um Toast seria mais profissional, mas o alert resolve por agora
+        console.log("Dispositivo e dependências removidos com sucesso.");
+      } else {
+        const errorData = await response.json();
+        alert(`Erro ao excluir: ${errorData.message || 'Erro desconhecido'}`);
+      }
+    } catch (error) {
+      console.error("Erro na comunicação com o servidor:", error);
+      alert("Servidor offline ou erro de rede.");
     }
   }
+};
 
-  // O useEffect roda a função assim que o componente aparece na tela
+  // --- CONTROLO DE ATUALIZAÇÃO ---
   useEffect(() => {
-    carregarDados()
-  }, [])
+    if (isLoggedIn) {
+      fetchDevices();
+      const interval = setInterval(fetchDevices, 5000); // Atualiza a cada 5s
+      return () => clearInterval(interval);
+    }
+  }, [isLoggedIn]);
 
+  // --- LÓGICA DE LOGIN ---
+  const handleLogin = (userRole: string) => {
+    setIsLoggedIn(true);
+    setRole(userRole);
+  };
+
+  // 1. Se não estiver logado, mostra a tela de Login
+  if (!isLoggedIn) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  const getDeviceIcon = (type: string) => {
+  const t = type.toLowerCase();
+  if (t.includes('camera') || t.includes('câmera')) return '📹';
+  if (t.includes('sensor')) return '🚨';
+  if (t.includes('portão') || t.includes('gate')) return '🚪';
+  if (t.includes('alarme')) return '🔔';
+  return '🛠️'; // Ícone padrão para outros tipos
+};
+
+  // 2. Se estiver logado, mostra o Dashboard
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>Monitoramento de Segurança</h1>
-      <div style={{ display: 'flex', gap: '10px' }}>
-        {devices.map(dev => (
-          <div key={dev.id} style={{ 
-            border: '1px solid black', 
-            padding: '10px',
-            background: dev.active ? '#e0ffe0' : '#ffe0e0' 
-          }}>
-            <h3>{dev.name}</h3>
-            <p>Status: {dev.active ? 'Ativo' : 'Inativo'}</p>
-          </div>
-        ))}
-      </div>
+    <div className="dashboard-container">
+      <header className="header">
+        <div className="header-info">
+          <h1>🛰️ Security Monitor</h1>
+          <p>Sessão: <strong>{role.toUpperCase()}</strong></p>
+        </div>
+        <button onClick={() => setIsLoggedIn(false)} className="logout-btn">
+          Sair
+        </button>
+      </header>
+      {/* SEÇÃO EXCLUSIVA PARA ADMIN: FORMULÁRIO DE CADASTRO */}
+      {role === 'admin' && (
+        <section className="admin-panel">
+          <DeviceForm onSuccess={fetchDevices} />
+        </section>
+      )}
+
+      {loading ? (
+        <div className="status-msg">A ligar ao servidor...</div>
+      ) : (
+        <div className="device-grid">
+          {devices.map((device) => (
+  <div key={device.id} className="device-card">
+    <div className={`status-line ${device.active ? 'online' : 'offline'}`} />
+    
+    {/* AQUI É ONDE O ÍCONE ENTRA */}
+    <div className="card-header">
+      <span className="device-type-icon">{getDeviceIcon(device.type)}</span>
+      <h3>{device.name}</h3>
     </div>
-  )
+
+    <div className="device-details">
+      <p>📍 {device.location}</p>
+      <p>🏷️ {device.type}</p>
+    </div>
+
+              <div className={`badge ${device.active ? 'bg-green' : 'bg-red'}`}>
+                {device.active ? 'ONLINE' : 'OFFLINE'}
+              </div>
+
+              {/* AÇÃO DE ADMIN: Botão de Excluir */}
+              {role === 'admin' && (
+                <button 
+                  className="delete-btn" 
+                  onClick={() => handleDelete(device.id)}
+                >
+                  🗑️ Remover
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
-export default App
+export default App;
