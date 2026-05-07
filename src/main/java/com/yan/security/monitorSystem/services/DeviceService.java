@@ -46,11 +46,13 @@ public class DeviceService {
     }
 
     public void delete(Long id) {
-        // Primeiro verificamos se o cara existe (reaproveitando a lógica de busca)
-        Device device = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Não é possível deletar: Dispositivo não encontrado."));
-
-        repository.delete(device);
+        // É boa prática verificar se o ID existe antes de tentar deletar
+        if (repository.existsById(id)) {
+            repository.deleteById(id);
+        } else {
+            // Se não existir, você pode lançar uma exceção ou apenas logar
+            throw new RuntimeException("Dispositivo não encontrado com o ID: " + id);
+        }
     }
 
     public DeviceResponseDTO update(Long id, DeviceRequestDTO dto) {

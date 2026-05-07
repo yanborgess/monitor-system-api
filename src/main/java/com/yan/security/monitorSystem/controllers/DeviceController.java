@@ -9,12 +9,20 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 
-@CrossOrigin(origins = "http://localhost:5173")
+@CrossOrigin(origins = "http://localhost:5173", allowedHeaders = "*", methods = {
+        RequestMethod.GET,
+        RequestMethod.POST,
+        RequestMethod.PUT,
+        RequestMethod.DELETE,
+        RequestMethod.OPTIONS
+})
+
 @RestController
 @RequestMapping("/api/devices")
 @Tag(name = "Dispositivos", description = "Gerenciamento de sensores e câmeras de segurança")
@@ -41,12 +49,12 @@ public class DeviceController {
         return service.findById(id);
     }
 
-    @Operation(summary = "Deleta dispositivo por id")
     @DeleteMapping("/{id}")
-    @ResponseStatus(HttpStatus.NO_CONTENT) // Define o status 204
-    public void delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@PathVariable Long id) {
         service.delete(id);
+        return ResponseEntity.noContent().build();
     }
+
 
     @Operation(summary = "Atualiza dispositivo por id")
     @PutMapping("/{id}")
