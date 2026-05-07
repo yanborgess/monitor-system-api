@@ -1,216 +1,188 @@
-/* Configuração Geral */
+/* --- LAYOUT GLOBAL --- */
 .dashboard-container {
-  padding: 40px;
-  background-color: #0f172a; /* Fundo escuro */
+  padding: 2rem 4rem;
+  background: radial-gradient(circle at top left, #1e293b, #0f172a);
   min-height: 100vh;
   color: #f8fafc;
-  font-family: 'Inter', sans-serif;
 }
 
-/* Cabeçalho */
+/* --- HEADER & NAVEGAÇÃO --- */
 .header {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 0;
   border-bottom: 2px solid #1e293b;
-  padding-bottom: 20px;
   margin-bottom: 30px;
 }
 
-.header h1 { margin: 0; color: #3b82f6; }
-.header p { margin: 5px 0 0 0; color: #94a3b8; }
+.header-brand-nav {
+  display: flex;
+  align-items: center;
+  gap: 50px;
+}
 
-/* Botão Sair */
-.logout-btn {
+.header h1 { margin: 0; color: #3b82f6; font-size: 1.8rem; }
+
+.logo-section p {
+  margin: 0;
+  font-size: 0.8rem;
+  color: #94a3b8;
+}
+
+.nav-tabs {
+  display: flex;
+  gap: 15px;
+}
+
+.nav-tabs button {
+  background: transparent;
+  border: none;
+  color: #94a3b8;
+  padding: 8px 16px;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  font-weight: bold;
+  transition: all 0.3s;
+}
+
+.nav-tabs button.active {
+  color: #3b82f6;
+  border-bottom-color: #3b82f6;
+}
+
+/* --- PERFIL DO USUÁRIO (DROPDOWN) --- */
+.profile-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.profile-avatar-clickable {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 2px solid #3b82f6;
+  cursor: pointer;
+  transition: transform 0.2s, box-shadow 0.2s;
+  object-fit: cover;
+}
+
+.profile-avatar-clickable:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(59, 130, 246, 0.4);
+}
+
+.profile-dropdown-menu {
+  position: absolute;
+  top: 55px;
+  right: 0;
+  width: 200px;
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 12px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  z-index: 1000;
+  padding: 10px 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dropdown-header {
+  padding: 10px 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.user-name { font-weight: 600; font-size: 0.9rem; color: #f8fafc; }
+.user-role-text { font-size: 0.75rem; color: #3b82f6; font-weight: bold; }
+
+.dropdown-divider {
+  height: 1px;
   background: #334155;
+  margin: 8px 0;
+}
+
+.dropdown-item {
+  background: transparent;
+  border: none;
+  color: #f8fafc;
+  padding: 12px 15px;
+  text-align: left;
+  cursor: pointer;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: background 0.2s;
+}
+
+.dropdown-item:hover {
+  background: rgba(59, 130, 246, 0.1);
+  color: #3b82f6;
+}
+
+.logout-item:hover {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* --- PAINEL ADMIN (FORMULÁRIO) --- */
+.admin-panel {
+  background: rgba(30, 41, 59, 0.7);
+  backdrop-filter: blur(10px);
+  padding: 1.5rem;
+  border-radius: 16px;
+  margin-bottom: 2rem;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.device-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr auto;
+  gap: 1rem;
+}
+
+.device-form input {
+  background: rgba(15, 23, 42, 0.6);
+  border: 1px solid #475569;
+  padding: 0.75rem;
+  border-radius: 8px;
+  color: white;
+}
+
+.device-form button {
+  background: #3b82f6;
   color: white;
   border: none;
   padding: 10px 20px;
   border-radius: 8px;
   cursor: pointer;
-  transition: 0.3s;
+  font-weight: bold;
 }
-.logout-btn:hover { background: #ef4444; }
 
-/* Grelha de Dispositivos */
+/* --- GRELHA DE DISPOSITIVOS --- */
 .device-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 20px;
 }
 
-/* Card do Dispositivo */
 .device-card {
   background: #1e293b;
-  border-radius: 12px;
-  padding: 20px;
+  border: 1px solid #334155;
+  border-radius: 16px;
+  padding: 1.5rem;
   position: relative;
   overflow: hidden;
-  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.3);
-  transition: transform 0.2s;
-}
-.device-card:hover { transform: translateY(-5px); }
-
-/* Linha de Status Lateral */
-.status-line {
-  position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 6px;
-}
-.online { background-color: #22c55e; }
-.offline { background-color: #ef4444; }
-
-/* Texto e Detalhes */
-.device-details p { margin: 5px 0; color: #94a3b8; font-size: 0.9rem; }
-
-.badge {
-  display: inline-block;
-  padding: 4px 10px;
-  border-radius: 20px;
-  font-size: 0.75rem;
-  font-weight: bold;
-  margin-top: 10px;
-}
-.bg-green { background: rgba(34, 197, 94, 0.2); color: #22c55e; }
-.bg-red { background: rgba(239, 68, 68, 0.2); color: #ef4444; }
-
-/* Botão de Excluir (Admin) */
-.delete-btn {
-  width: 100%;
-  margin-top: 20px;
-  background: transparent;
-  border: 1px solid #ef4444;
-  color: #ef4444;
-  padding: 8px;
-  border-radius: 6px;
-  cursor: pointer;
   transition: 0.3s;
 }
-.delete-btn:hover {
-  background: #ef4444;
-  color: white;
-}
 
-.status-msg { text-align: center; margin-top: 50px; color: #94a3b8; }
+.device-card:hover { transform: translateY(-5px); border-color: #3b82f6; }
 
-
-.admin-panel {
-  background: #1e293b;
-  padding: 20px;
-  border-radius: 12px;
-  margin-bottom: 30px;
-  border: 1px dashed #3b82f6;
-}
-
-.device-form {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-.device-form input {
-  padding: 10px;
-  border-radius: 6px;
-  border: 1px solid #334155;
-  background: #0f172a;
-  color: white;
-  flex: 1;
-}
-
-.device-form button {
-  background: #22c55e;
-  color: white;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: bold;
-}
-
-/* Container Principal mais limpo */
-.dashboard-container {
-  padding: 2rem 4rem;
-  background: radial-gradient(circle at top left, #1e293b, #0f172a);
-  min-height: 100vh;
-  color: #f1f5f9;
-}
-
-/* Painel de Admin flutuante */
-.admin-panel {
-  background: rgba(30, 41, 59, 0.7);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  padding: 1.5rem;
-  border-radius: 16px;
-  margin-bottom: 2rem;
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
-}
-
-/* Cards mais robustos */
-.device-card {
-  background: #1e293b;
-  border: 1px solid #334155;
-  border-radius: 16px;
-  padding: 1.5rem;
-  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.device-card:hover {
-  transform: translateY(-8px);
-  border-color: #3b82f6;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5);
-}
-
-/* Badges de Status com brilho (Glow) */
-.badge.bg-green {
-  background: rgba(34, 197, 94, 0.1);
-  color: #4ade80;
-  border: 1px solid rgba(34, 197, 94, 0.5);
-  box-shadow: 0 0 10px rgba(34, 197, 94, 0.2);
-}
-
-.badge.bg-red {
-  background: rgba(239, 68, 68, 0.1);
-  color: #f87171;
-  border: 1px solid rgba(239, 68, 68, 0.5);
-}
-
-/* Adicione no App.css ou DeviceForm.css */
-.device-form {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr auto;
-  gap: 1rem;
-  align-items: center;
-}
-
-.device-form input {
-  background: rgba(15, 23, 42, 0.6);
-  border: 1px solid #475569;
-  padding: 0.75rem 1rem;
-  font-size: 0.9rem;
-  transition: border-color 0.2s;
-}
-
-.device-form input:focus {
-  border-color: #3b82f6;
-  outline: none;
-  background: rgba(15, 23, 42, 0.9);
-}
-
-.device-form button {
-  background: #3b82f6;
-  padding: 0.75rem 1.5rem;
-  height: fit-content;
-}
-
-.device-form button:hover {
-  background: #2563eb;
-  box-shadow: 0 0 15px rgba(59, 130, 246, 0.5);
-}
+.status-line { position: absolute; left: 0; top: 0; bottom: 0; width: 5px; }
+.online { background-color: #22c55e; }
+.offline { background-color: #ef4444; }
 
 .card-header {
   display: flex;
@@ -219,18 +191,86 @@
   margin-bottom: 15px;
 }
 
-.device-type-icon {
-  font-size: 1.5rem;
-  background: rgba(255, 255, 255, 0.05);
-  padding: 8px;
-  border-radius: 10px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.device-type-icon { font-size: 1.5rem; }
+
+.badge {
+  display: inline-block;
+  padding: 5px 12px;
+  border-radius: 20px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  margin-top: 10px;
 }
 
-.card-header h3 {
-  margin: 0;
-  font-size: 1.1rem;
-  color: #f8fafc;
+.bg-green { background: rgba(34, 197, 94, 0.1); color: #4ade80; border: 1px solid rgba(34, 197, 94, 0.5); }
+.bg-red { background: rgba(239, 68, 68, 0.1); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.5); }
+
+.delete-btn {
+  width: 100%;
+  margin-top: 15px;
+  background: transparent;
+  border: 1px solid #ef4444;
+  color: #ef4444;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.delete-btn:hover { background: #ef4444; color: white; }
+
+/* --- TABELA DE LOGS --- */
+.table-wrapper {
+  background: #1e293b;
+  border-radius: 12px;
+  border: 1px solid #334155;
+  overflow: hidden;
+  margin-top: 20px;
+}
+
+.logs-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.logs-table th {
+  background: #0f172a;
+  padding: 15px;
+  text-align: left;
+  font-size: 0.8rem;
+  color: #3b82f6;
+  text-transform: uppercase;
+}
+
+.logs-table td {
+  padding: 12px 15px;
+  border-bottom: 1px solid #334155;
+  font-size: 0.9rem;
+}
+
+.log-tag {
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: bold;
+  background: rgba(59, 130, 246, 0.2);
+  color: #60a5fa;
+}
+
+/* --- EDIÇÃO IN-CARD --- */
+.edit-mode-form { display: flex; flex-direction: column; gap: 8px; }
+
+.edit-mode-form input {
+  background: #0f172a;
+  border: 1px solid #3b82f6;
+  color: white;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+.edit-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 5px; }
+
+.edit-actions button, .edit-icon-btn {
+  background: transparent;
+  border: none;
+  cursor: pointer;
 }

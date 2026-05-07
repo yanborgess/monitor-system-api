@@ -1,17 +1,20 @@
 import { useEffect, useState } from 'react';
 import type { Device } from './types/device';
-import { Login } from './components/login';
+import { Login } from './components/Login';
 import './App.css';
 import { DeviceForm } from './components/DeviceForm';
 
 function App() {
-  // --- ESTADOS ---
   const [devices, setDevices] = useState<Device[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [role, setRole] = useState(''); // 'admin' ou 'user'
+  const [role, setRole] = useState('');
+  const [currentTab, setCurrentTab] = useState<'dashboard' | 'logs'>('dashboard');
+  const [logs, setLogs] = useState<any[]>([]); 
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [editingId, setEditingId] = useState<number | null>(null);
+  const [editForm, setEditForm] = useState({ name: '', location: '', type: '' });
 
-  // --- FUNÇÃO PARA BUSCAR DISPOSITIVOS (GET) ---
   const fetchDevices = async () => {
     try {
       const response = await fetch("http://localhost:8080/api/devices");
@@ -25,118 +28,165 @@ function App() {
     }
   };
 
-  // --- FUNÇÃO PARA EXCLUIR (DELETE) - APENAS ADMIN ---
-  const handleDelete = async (id: number) => {
-  // Confirmar antes de fazer asneira
-  const confirmed = window.confirm("⚠️ ATENÇÃO: Esta ação irá apagar o dispositivo e TODOS os seus logs de segurança. Deseja continuar?");
-  
-  if (confirmed) {
+  const fetchLogs = async () => {
     try {
-      // Opcional: podes colocar um estado de 'deleting' aqui para mostrar um spinner
-      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
-        method: 'DELETE',
-      });
+      const response = await fetch("http://localhost:8080/api/devices/logs");
+      const contentType = response.headers.get("content-type");
+      if (!response.ok || !contentType?.includes("application/json")) return;
+      const data = await response.json();
+      setLogs(data);
+    } catch (error) {
+      console.error("Erro ao buscar logs:", error);
+    }
+  };
 
+  const handleUpdate = async (id: number) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/devices/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(editForm)
+      });
       if (response.ok) {
-        // Atualização optimista: remove da lista imediatamente
-        setDevices(prev => prev.filter(device => device.id !== id));
-        // Usar um Toast seria mais profissional, mas o alert resolve por agora
-        console.log("Dispositivo e dependências removidos com sucesso.");
-      } else {
-        const errorData = await response.json();
-        alert(`Erro ao excluir: ${errorData.message || 'Erro desconhecido'}`);
+        setEditingId(null);
+        fetchDevices();
       }
     } catch (error) {
-      console.error("Erro na comunicação com o servidor:", error);
-      alert("Servidor offline ou erro de rede.");
+      console.error("Erro:", error);
     }
-  }
-};
+  };
 
-  // --- CONTROLO DE ATUALIZAÇÃO ---
+  const handleToggleStatus = async (id: number, currentStatus: boolean) => {
+    try {
+      const response = await fetch(`http://localhost:8080/api/devices/${id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ active: !currentStatus })
+      });
+      if (response.ok) {
+        fetchDevices(); 
+      } else {
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          const errorData = await response.json();
+          alert("⚠️ Bloqueio: " + (errorData.message || "Ação não permitida"));
+        }
+      }
+    } catch (error) {
+      console.error("Erro:", error);
+    }
+  };
+
+  const handleDelete = async (id: number) => {
+    if (window.confirm("⚠️ Deseja apagar este dispositivo?")) {
+      await fetch(`http://localhost:8080/api/devices/${id}`, { method: 'DELETE' });
+      fetchDevices();
+    }
+  };
+
   useEffect(() => {
     if (isLoggedIn) {
       fetchDevices();
-      const interval = setInterval(fetchDevices, 5000); // Atualiza a cada 5s
+      const interval = setInterval(fetchDevices, 5000);
       return () => clearInterval(interval);
     }
   }, [isLoggedIn]);
 
-  // --- LÓGICA DE LOGIN ---
-  const handleLogin = (userRole: string) => {
-    setIsLoggedIn(true);
-    setRole(userRole);
-  };
-
-  // 1. Se não estiver logado, mostra a tela de Login
-  if (!isLoggedIn) {
-    return <Login onLogin={handleLogin} />;
-  }
+  if (!isLoggedIn) return <Login onLogin={(r) => { setRole(r); setIsLoggedIn(true); }} />;
 
   const getDeviceIcon = (type: string) => {
-  const t = type.toLowerCase();
-  if (t.includes('camera') || t.includes('câmera')) return '📹';
-  if (t.includes('sensor')) return '🚨';
-  if (t.includes('portão') || t.includes('gate')) return '🚪';
-  if (t.includes('alarme')) return '🔔';
-  return '🛠️'; // Ícone padrão para outros tipos
-};
+    const t = type.toLowerCase();
+    if (t.includes('camera') || t.includes('câmera')) return '📹';
+    if (t.includes('sensor')) return '🚨';
+    if (t.includes('portão')) return '🚪';
+    return '🛠️';
+  };
 
-  // 2. Se estiver logado, mostra o Dashboard
   return (
     <div className="dashboard-container">
       <header className="header">
-        <div className="header-info">
-          <h1>🛰️ Security Monitor</h1>
-          <p>Sessão: <strong>{role.toUpperCase()}</strong></p>
+        <div className="header-brand-nav">
+          <div className="logo-section">
+            <h1>🛰️ Security Monitor</h1>
+            <p>Painel de Controle</p>
+          </div>
+          {role === 'admin' && (
+            <nav className="nav-tabs">
+              <button className={currentTab === 'dashboard' ? 'active' : ''} onClick={() => setCurrentTab('dashboard')}>Monitoramento</button>
+              <button className={currentTab === 'logs' ? 'active' : ''} onClick={() => { setCurrentTab('logs'); fetchLogs(); }}>Histórico</button>
+            </nav>
+          )}
         </div>
-        <button onClick={() => setIsLoggedIn(false)} className="logout-btn">
-          Sair
-        </button>
-      </header>
-      {/* SEÇÃO EXCLUSIVA PARA ADMIN: FORMULÁRIO DE CADASTRO */}
-      {role === 'admin' && (
-        <section className="admin-panel">
-          <DeviceForm onSuccess={fetchDevices} />
-        </section>
-      )}
 
-      {loading ? (
-        <div className="status-msg">A ligar ao servidor...</div>
-      ) : (
-        <div className="device-grid">
-          {devices.map((device) => (
-  <div key={device.id} className="device-card">
-    <div className={`status-line ${device.active ? 'online' : 'offline'}`} />
-    
-    {/* AQUI É ONDE O ÍCONE ENTRA */}
-    <div className="card-header">
-      <span className="device-type-icon">{getDeviceIcon(device.type)}</span>
-      <h3>{device.name}</h3>
-    </div>
-
-    <div className="device-details">
-      <p>📍 {device.location}</p>
-      <p>🏷️ {device.type}</p>
-    </div>
-
-              <div className={`badge ${device.active ? 'bg-green' : 'bg-red'}`}>
-                {device.active ? 'ONLINE' : 'OFFLINE'}
+        <div className="profile-wrapper">
+          <img src="https://github.com/yan-borges.png" className="profile-avatar-clickable" onClick={() => setShowProfileMenu(!showProfileMenu)} alt="Perfil" />
+          {showProfileMenu && (
+            <div className="profile-dropdown-menu">
+              <div className="dropdown-header">
+                <span className="user-name">Yan Borges</span>
+                <span className="user-role-text">{role.toUpperCase()}</span>
               </div>
-
-              {/* AÇÃO DE ADMIN: Botão de Excluir */}
-              {role === 'admin' && (
-                <button 
-                  className="delete-btn" 
-                  onClick={() => handleDelete(device.id)}
-                >
-                  🗑️ Remover
-                </button>
-              )}
+              <div className="dropdown-divider"></div>
+              <button className="dropdown-item">⚙️ Configurações</button>
+              <button className="dropdown-item logout-item" onClick={() => setIsLoggedIn(false)}>🚪 Sair</button>
             </div>
-          ))}
+          )}
         </div>
-      )}
+      </header>
+
+      <main className="main-content">
+        {(role !== 'admin' || currentTab === 'dashboard') ? (
+          <>
+            {role === 'admin' && <section className="admin-panel"><DeviceForm onSuccess={fetchDevices} /></section>}
+            <div className="device-grid">
+              {devices.map((device) => (
+                <div key={device.id} className="device-card">
+                  <div className={`status-line ${device.active ? 'online' : 'offline'}`} />
+                  {editingId === device.id ? (
+                    <div className="edit-mode-form">
+                      <input value={editForm.name} onChange={e => setEditForm({...editForm, name: e.target.value})} placeholder="Nome" />
+                      <input value={editForm.location} onChange={e => setEditForm({...editForm, location: e.target.value})} placeholder="Localização" />
+                      <div className="edit-actions">
+                        <button onClick={() => handleUpdate(device.id)}>✅</button>
+                        <button onClick={() => setEditingId(null)}>❌</button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="card-header">
+                        <span className="device-type-icon">{getDeviceIcon(device.type)}</span>
+                        <h3>{device.name}</h3>
+                        {role === 'admin' && <button className="edit-icon-btn" onClick={() => { setEditingId(device.id); setEditForm({ name: device.name, location: device.location, type: device.type }); }}>✏️</button>}
+                      </div>
+                      <div className="device-details"><p>📍 {device.location}</p><p>🏷️ {device.type}</p></div>
+                      <div className={`badge ${device.active ? 'bg-green' : 'bg-red'}`} style={{ cursor: role === 'admin' ? 'pointer' : 'default' }} onClick={() => role === 'admin' && handleToggleStatus(device.id, device.active)}>{device.active ? 'ONLINE' : 'OFFLINE'}</div>
+                      {role === 'admin' && <button className="delete-btn" onClick={() => handleDelete(device.id)}>🗑️ Remover</button>}
+                    </>
+                  )}
+                </div>
+              ))}
+            </div>
+          </>
+        ) : (
+          <section className="logs-section">
+            <div className="table-wrapper">
+              <table className="logs-table">
+                <thead><tr><th>Data/Hora</th><th>Dispositivo</th><th>Ação</th><th>Mensagem</th></tr></thead>
+                <tbody>
+                  {logs.map((log) => (
+                    <tr key={log.id}>
+                      <td>{new Date(log.timestamp).toLocaleString('pt-BR')}</td>
+                      <td>{log.device?.name || "Eliminado"}</td>
+                      <td><span className="log-tag">{log.action}</span></td>
+                      <td>{log.details || log.message}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+      </main>
     </div>
   );
 }
