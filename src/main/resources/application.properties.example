@@ -1,0 +1,7 @@
+# Exemplo de configuração - Renomeie para application.properties e preencha os dados
+spring.datasource.url=jdbc:postgresql://localhost:5432/NOME_DO_SEU_BANCO
+spring.datasource.username=seu_usuario
+spring.datasource.password=sua_senha
+spring.jpa.hibernate.ddl-auto=update
+
+api.security.token.secret=sua_chave_secreta_aqui
